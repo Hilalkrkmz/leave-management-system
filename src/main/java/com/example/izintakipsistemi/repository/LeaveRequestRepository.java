@@ -12,6 +12,6 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     // Admin'in bekleyen talepleri görmesi için
     List<LeaveRequest> findByStatus(LeaveStatus status);
 
-    // Bir personelin, belirli statüdeki taleplerini görmesi için (opsiyonel filtre)
+    // Bir personelin, belirli statüdeki taleplerini görmesi için
     List<LeaveRequest> findByUserIdAndStatus(Long userId, LeaveStatus status);
 }
