@@ -1,10 +1,16 @@
 package com.example.izintakipsistemi.service;
+
+import com.example.izintakipsistemi.dto.request.RegisterRequest;
+import com.example.izintakipsistemi.dto.response.UserResponse;
+import com.example.izintakipsistemi.entity.Role;
 import com.example.izintakipsistemi.entity.User;
 import com.example.izintakipsistemi.repository.UserRepository;
 import com.example.izintakipsistemi.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -14,24 +20,49 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public User createUser(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Bu email adresi zaten kayıtlı: " + user.getEmail());
+    public UserResponse createUser(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Bu email adresi zaten kayıtlı: " + request.getEmail());
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        User user = new User();
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.valueOf(request.getRole()));
+        user.setCreatedAt(LocalDateTime.now());
+
+        User savedUser = userRepository.save(user);
+        return toResponse(savedUser);
     }
 
-    public User deactivateUser(Long id) {
+    public UserResponse deactivateUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + id));
 
         user.setActive(false);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return toResponse(savedUser);
+    }
+
+    // Entity'yi DTO'ya çeviren yardımcı metod
+    private UserResponse toResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.isActive(),
+                user.getCreatedAt()
+        );
     }
 }

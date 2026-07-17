@@ -1,7 +1,9 @@
 package com.example.izintakipsistemi.controller;
 
 import com.example.izintakipsistemi.dto.request.LoginRequest;
+import com.example.izintakipsistemi.dto.request.RegisterRequest;
 import com.example.izintakipsistemi.dto.response.LoginResponse;
+import com.example.izintakipsistemi.dto.response.UserResponse;
 import com.example.izintakipsistemi.entity.User;
 import com.example.izintakipsistemi.repository.UserRepository;
 import com.example.izintakipsistemi.security.JwtService;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -31,12 +34,11 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
 
         String token = jwtService.generateToken(user.getEmail());
-
         return new LoginResponse(token, user.getEmail(), user.getRole().name());
     }
 
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
-        return userService.createUser(user);
+    public UserResponse register(@RequestBody RegisterRequest request) {
+        return userService.createUser(request);
     }
 }
