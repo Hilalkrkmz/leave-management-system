@@ -13,5 +13,6 @@ public class UserResponse {
     private String email;
     private String role;
     private boolean isActive;
+    private int annualLeaveBalance;
     private LocalDateTime createdAt;
 }

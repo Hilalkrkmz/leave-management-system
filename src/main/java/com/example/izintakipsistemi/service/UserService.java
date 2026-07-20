@@ -53,6 +53,19 @@ public class UserService {
         return toResponse(savedUser);
     }
 
+    public UserResponse updateLeaveBalance(Long id, int newBalance) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + id));
+
+        if (newBalance < 0) {
+            throw new IllegalArgumentException("İzin bakiyesi negatif olamaz.");
+        }
+
+        user.setAnnualLeaveBalance(newBalance);
+        User saved = userRepository.save(user);
+        return toResponse(saved);
+    }
+
     // Entity'yi DTO'ya çeviren yardımcı metod
     private UserResponse toResponse(User user) {
         return new UserResponse(
@@ -62,6 +75,7 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().name(),
                 user.isActive(),
+                user.getAnnualLeaveBalance(),
                 user.getCreatedAt()
         );
     }

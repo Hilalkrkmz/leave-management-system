@@ -27,6 +27,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private int annualLeaveBalance = 14;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

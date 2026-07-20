@@ -42,6 +42,12 @@ public class LeaveRequestService {
         request.setStatus(LeaveStatus.PENDING);
         request.calculateTotalDays();
 
+        if (request.getTotalDays() > user.getAnnualLeaveBalance()) {
+            throw new IllegalArgumentException(
+                    "Yetersiz izin bakiyesi. Kalan bakiye: " + user.getAnnualLeaveBalance() + " gün, " +
+                            "talep edilen: " + request.getTotalDays() + " gün.");
+        }
+
         LeaveRequest saved = leaveRequestRepository.save(request);
         return toResponse(saved);
     }
@@ -58,6 +64,10 @@ public class LeaveRequestService {
 
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin bulunamadı: " + adminId));
+
+        User employee = request.getUser();
+        employee.setAnnualLeaveBalance(employee.getAnnualLeaveBalance() - request.getTotalDays());
+        userRepository.save(employee);
 
         request.setStatus(LeaveStatus.APPROVED);
         request.setReviewedBy(admin);
