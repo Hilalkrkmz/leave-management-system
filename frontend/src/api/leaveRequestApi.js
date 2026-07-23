@@ -24,3 +24,8 @@ export const rejectLeaveRequest = async (id, rejectionReason) => {
   const response = await axiosInstance.put(`/leave-requests/${id}/reject`, { rejectionReason });
   return response.data;
 };
+
+export const getAllRequests = async () => {
+  const response = await axiosInstance.get("/leave-requests");
+  return response.data;
+};

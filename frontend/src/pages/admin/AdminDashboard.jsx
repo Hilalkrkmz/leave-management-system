@@ -4,6 +4,7 @@ import {
   approveLeaveRequest,
   rejectLeaveRequest,
 } from "../../api/leaveRequestApi";
+import { Link } from "react-router-dom";
 
 function AdminDashboard() {
   const email = localStorage.getItem("email");
@@ -61,6 +62,12 @@ function AdminDashboard() {
       <h1>Admin Paneli</h1>
       <p>Hoş geldin, {email}</p>
       <button onClick={handleLogout}>Çıkış Yap</button>
+      <nav>
+        <Link to="/admin">Bekleyen Talepler</Link> |{" "}
+        <Link to="/admin/all-requests">Tüm Talepler</Link> |{" "}
+        <Link to="/admin/employees">Personel Yönetimi</Link> |{" "}
+        <Link to="/admin/leave-types">İzin Türü Yönetimi</Link>
+      </nav>
 
       <h2>Bekleyen İzin Talepleri</h2>
 
