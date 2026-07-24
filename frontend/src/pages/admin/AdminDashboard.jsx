@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
+import Navbar from "../../components/layout/Navbar";
 import {
   getPendingRequests,
   approveLeaveRequest,
   rejectLeaveRequest,
 } from "../../api/leaveRequestApi";
-import { Link } from "react-router-dom";
+import { adminLinks } from "../../components/layout/navLinks";
 
 function AdminDashboard() {
-  const email = localStorage.getItem("email");
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rejectingId, setRejectingId] = useState(null);
@@ -25,11 +25,6 @@ function AdminDashboard() {
   useEffect(() => {
     loadRequests();
   }, []);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/login";
-  };
 
   const handleApprove = async (id) => {
     setError("");
@@ -59,71 +54,68 @@ function AdminDashboard() {
 
   return (
     <div>
-      <h1>Admin Paneli</h1>
-      <p>Hoş geldin, {email}</p>
-      <button onClick={handleLogout}>Çıkış Yap</button>
-      <nav>
-        <Link to="/admin">Bekleyen Talepler</Link> |{" "}
-        <Link to="/admin/all-requests">Tüm Talepler</Link> |{" "}
-        <Link to="/admin/employees">Personel Yönetimi</Link> |{" "}
-        <Link to="/admin/leave-types">İzin Türü Yönetimi</Link>
-      </nav>
+      <Navbar links={adminLinks} />
+      <div className="page-container">
+        <div className="page-header">
+         <h1>Bekleyen İzin Talepleri</h1>
+         <p>Onay bekleyen izin taleplerini buradan yönetebilirsiniz.</p>
+        </div>
+        <div className="card">
+          <h2>Bekleyen İzin Talepleri</h2>
 
-      <h2>Bekleyen İzin Talepleri</h2>
+          {error && <div className="error-message">{error}</div>}
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+          {loading && <p>Yükleniyor...</p>}
+          {!loading && requests.length === 0 && <p>Bekleyen talep yok.</p>}
 
-      {loading && <p>Yükleniyor...</p>}
+          {!loading && requests.length > 0 && (
+            <table>
+              <thead>
+                <tr>
+                  <th>Personel</th>
+                  <th>İzin Türü</th>
+                  <th>Başlangıç</th>
+                  <th>Bitiş</th>
+                  <th>Gün</th>
+                  <th>Sebep</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.map((req) => (
+                  <tr key={req.id}>
+                    <td>{req.employeeName}</td>
+                    <td>{req.leaveTypeName}</td>
+                    <td>{req.startDate}</td>
+                    <td>{req.endDate}</td>
+                    <td>{req.totalDays}</td>
+                    <td>{req.reason}</td>
+                    <td>
+                      <button className="btn btn-success" onClick={() => handleApprove(req.id)}>Onayla</button>
+                      <button className="btn btn-danger" onClick={() => handleRejectClick(req.id)}>Reddet</button>
 
-      {!loading && requests.length === 0 && (
-        <p>Bekleyen talep yok.</p>
-      )}
-
-      {!loading && requests.length > 0 && (
-        <table border="1" cellPadding="8">
-          <thead>
-            <tr>
-              <th>Personel</th>
-              <th>İzin Türü</th>
-              <th>Başlangıç</th>
-              <th>Bitiş</th>
-              <th>Gün Sayısı</th>
-              <th>Sebep</th>
-              <th>İşlemler</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((req) => (
-              <tr key={req.id}>
-                <td>{req.employeeName}</td>
-                <td>{req.leaveTypeName}</td>
-                <td>{req.startDate}</td>
-                <td>{req.endDate}</td>
-                <td>{req.totalDays}</td>
-                <td>{req.reason}</td>
-                <td>
-                  <button onClick={() => handleApprove(req.id)}>Onayla</button>
-                  <button onClick={() => handleRejectClick(req.id)}>Reddet</button>
-
-                  {rejectingId === req.id && (
-                    <div>
-                      <input
-                        type="text"
-                        placeholder="Red sebebi"
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                      />
-                      <button onClick={() => handleRejectSubmit(req.id)}>
-                        Gönder
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+                      {rejectingId === req.id && (
+                        <div style={{ marginTop: 8 }}>
+                          <input
+                            type="text"
+                            placeholder="Red sebebi"
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            style={{ marginRight: 8, padding: 6 }}
+                          />
+                          <button className="btn btn-primary" onClick={() => handleRejectSubmit(req.id)}>
+                            Gönder
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

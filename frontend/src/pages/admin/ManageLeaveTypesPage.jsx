@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import Navbar from "../../components/layout/Navbar";
 import { getAllLeaveTypes, createLeaveType, deactivateLeaveType } from "../../api/leaveTypeApi";
+import { adminLinks } from "../../components/layout/navLinks";
 
 function ManageLeaveTypesPage() {
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -46,62 +48,61 @@ function ManageLeaveTypesPage() {
 
   return (
     <div>
-      <h2>İzin Türü Yönetimi</h2>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <h3>Yeni İzin Türü Ekle</h3>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>İsim:</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+      <Navbar links={adminLinks} />
+      <div className="page-container">
+        <div className="card">
+          <h2>Yeni İzin Türü Ekle</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>İsim</label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label>Açıklama</label>
+              <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+            {error && <div className="error-message">{error}</div>}
+            <button type="submit" className="btn btn-primary">Ekle</button>
+          </form>
         </div>
-        <div>
-          <label>Açıklama:</label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
+
+        <div className="card">
+          <h2>Mevcut İzin Türleri</h2>
+          {loading && <p>Yükleniyor...</p>}
+          {!loading && (
+            <table>
+              <thead>
+                <tr>
+                  <th>İsim</th>
+                  <th>Açıklama</th>
+                  <th>Durum</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaveTypes.map((type) => (
+                  <tr key={type.id}>
+                    <td>{type.name}</td>
+                    <td>{type.description}</td>
+                    <td>
+                      <span className={`status-badge ${type.active ? "status-APPROVED" : "status-REJECTED"}`}>
+                        {type.active ? "Aktif" : "Pasif"}
+                      </span>
+                    </td>
+                    <td>
+                      {type.active && (
+                        <button className="btn btn-danger" onClick={() => handleDeactivate(type.id)}>
+                          Pasif Yap
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
-        <button type="submit">Ekle</button>
-      </form>
-
-      <h3>Mevcut İzin Türleri</h3>
-
-      {loading && <p>Yükleniyor...</p>}
-
-      {!loading && (
-        <table border="1" cellPadding="8">
-          <thead>
-            <tr>
-              <th>İsim</th>
-              <th>Açıklama</th>
-              <th>Durum</th>
-              <th>İşlemler</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaveTypes.map((type) => (
-              <tr key={type.id}>
-                <td>{type.name}</td>
-                <td>{type.description}</td>
-                <td>{type.active ? "Aktif" : "Pasif"}</td>
-                <td>
-                  {type.active && (
-                    <button onClick={() => handleDeactivate(type.id)}>Pasif Yap</button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      </div>
     </div>
   );
 }
