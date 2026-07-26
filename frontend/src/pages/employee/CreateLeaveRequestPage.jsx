@@ -63,11 +63,23 @@ function CreateLeaveRequestPage() {
             </div>
             <div className="form-group">
               <label>Başlangıç Tarihi</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
+                required
+              />
             </div>
             <div className="form-group">
               <label>Bitiş Tarihi</label>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate || new Date().toISOString().split("T")[0]}
+                required
+              />
             </div>
             <div className="form-group">
               <label>Sebep</label>

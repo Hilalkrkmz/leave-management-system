@@ -13,4 +13,20 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+// Her cevaptan sonra çalışır: token geçersizse otomatik login'e yönlendirir
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const isLoginRequest = error.config.url.includes("/auth/login");
+
+      if (!isLoginRequest) {
+        localStorage.clear();
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;

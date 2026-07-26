@@ -8,6 +8,7 @@ function ProfilePage() {
   const links = role === "ADMIN" ? adminLinks : employeeLinks;
 
   const [userInfo, setUserInfo] = useState(null);
+  const [passwordSectionOpen, setPasswordSectionOpen] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -71,24 +72,33 @@ function ProfilePage() {
         </div>
 
         <div className="card">
-          <h2>Şifre Değiştir</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Mevcut Şifre</label>
-              <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label>Yeni Şifre</label>
-              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label>Yeni Şifre (Tekrar)</label>
-              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-            </div>
-            {error && <div className="error-message">{error}</div>}
-            {success && <div className="success-message">{success}</div>}
-            <button type="submit" className="btn btn-primary">Şifreyi Güncelle</button>
-          </form>
+          <div
+            className="collapsible-header"
+            onClick={() => setPasswordSectionOpen(!passwordSectionOpen)}
+          >
+            <h2 style={{ marginBottom: 0, border: "none", paddingBottom: 0 }}>Şifre Değiştir</h2>
+            <span className={`collapsible-arrow ${passwordSectionOpen ? "open" : ""}`}>▼</span>
+          </div>
+
+          {passwordSectionOpen && (
+            <form onSubmit={handleSubmit} style={{ marginTop: 20 }}>
+              <div className="form-group">
+                <label>Mevcut Şifre</label>
+                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <label>Yeni Şifre</label>
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <label>Yeni Şifre (Tekrar)</label>
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              </div>
+              {error && <div className="error-message">{error}</div>}
+              {success && <div className="success-message">{success}</div>}
+              <button type="submit" className="btn btn-primary">Şifreyi Güncelle</button>
+            </form>
+          )}
         </div>
       </div>
     </div>

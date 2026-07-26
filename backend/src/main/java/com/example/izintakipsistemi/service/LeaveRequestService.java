@@ -10,6 +10,7 @@ import com.example.izintakipsistemi.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,6 +30,9 @@ public class LeaveRequestService {
         LeaveType leaveType = leaveTypeRepository.findById(dto.getLeaveTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("İzin türü bulunamadı: " + dto.getLeaveTypeId()));
 
+        if (dto.getStartDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Geçmiş bir tarih için izin talebi oluşturulamaz.");
+        }
         if (dto.getEndDate().isBefore(dto.getStartDate())) {
             throw new IllegalArgumentException("Bitiş tarihi, başlangıç tarihinden önce olamaz.");
         }

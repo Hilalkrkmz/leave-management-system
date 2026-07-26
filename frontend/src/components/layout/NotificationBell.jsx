@@ -1,0 +1,106 @@
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { getMyLeaveRequests } from "../../api/leaveRequestApi";
+
+function NotificationBell() {
+  const [notifications, setNotifications] = useState([]);
+  const [unseenCount, setUnseenCount] = useState(0);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const wrapperRef = useRef(null);
+  const navigate = useNavigate();
+
+  const loadNotifications = () => {
+    getMyLeaveRequests()
+      .then((requests) => {
+        const decided = requests.filter((r) => r.status !== "PENDING");
+
+        const items = decided.map((r) => ({
+          id: r.id,
+          title:
+            r.status === "APPROVED"
+              ? `${r.leaveTypeName} talebiniz onaylandı`
+              : `${r.leaveTypeName} talebiniz reddedildi`,
+          detail:
+            r.status === "APPROVED"
+              ? `${r.startDate} - ${r.endDate}`
+              : `Sebep: ${r.rejectionReason || "belirtilmedi"}`,
+        }));
+
+        setNotifications(items);
+
+        const seenIds = JSON.parse(localStorage.getItem("seenRequestIds") || "[]");
+        const unseen = items.filter((item) => !seenIds.includes(item.id));
+        setUnseenCount(unseen.length);
+      })
+      .catch((err) => console.log("Hata:", err));
+  };
+
+  useEffect(() => {
+  loadNotifications();
+
+  const interval = setInterval(() => {
+    loadNotifications();
+  }, 10000); // her 10 saniyede bir kontrol et
+
+  return () => clearInterval(interval);
+}, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setPanelOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const markAllSeen = (items) => {
+    const allIds = items.map((n) => n.id);
+    localStorage.setItem("seenRequestIds", JSON.stringify(allIds));
+    setUnseenCount(0);
+  };
+
+  const handleBellClick = () => {
+    const opening = !panelOpen;
+    setPanelOpen(opening);
+    if (opening) {
+      markAllSeen(notifications);
+    }
+  };
+
+  const handleItemClick = () => {
+    markAllSeen(notifications);
+    setPanelOpen(false);
+    navigate("/employee/my-requests");
+  };
+
+  return (
+    <div className="notification-wrapper" ref={wrapperRef}>
+      <button className="notification-bell" onClick={handleBellClick}>
+        🔔
+        {unseenCount > 0 && <span className="notification-badge">{unseenCount}</span>}
+      </button>
+
+      {panelOpen && (
+        <div className="notification-panel">
+          {notifications.length === 0 ? (
+            <div className="notification-empty">Henüz bildiriminiz yok.</div>
+          ) : (
+            notifications
+              .slice()
+              .reverse()
+              .map((n) => (
+                <div key={n.id} className="notification-item" onClick={handleItemClick} style={{ cursor: "pointer" }}>
+                  <div className="notification-item-title">{n.title}</div>
+                  <div className="notification-item-detail">{n.detail}</div>
+                </div>
+              ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default NotificationBell;

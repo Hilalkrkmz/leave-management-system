@@ -1,15 +1,12 @@
 import { useState, useEffect } from "react";
 import Navbar from "../../components/layout/Navbar";
-import { getAllLeaveTypes, createLeaveType, deactivateLeaveType } from "../../api/leaveTypeApi";
 import { adminLinks } from "../../components/layout/navLinks";
+import { getAllLeaveTypes, deactivateLeaveType } from "../../api/leaveTypeApi";
 
-function ManageLeaveTypesPage() {
+function LeaveTypeListPage() {
   const [leaveTypes, setLeaveTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
 
   const loadLeaveTypes = () => {
     setLoading(true);
@@ -22,19 +19,6 @@ function ManageLeaveTypesPage() {
   useEffect(() => {
     loadLeaveTypes();
   }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      await createLeaveType({ name, description, isActive: true });
-      setName("");
-      setDescription("");
-      loadLeaveTypes();
-    } catch (err) {
-      setError(err.response?.data?.message || "Bir hata oluştu.");
-    }
-  };
 
   const handleDeactivate = async (id) => {
     setError("");
@@ -50,25 +34,15 @@ function ManageLeaveTypesPage() {
     <div>
       <Navbar links={adminLinks} />
       <div className="page-container">
-        <div className="card">
-          <h2>Yeni İzin Türü Ekle</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>İsim</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label>Açıklama</label>
-              <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
-            </div>
-            {error && <div className="error-message">{error}</div>}
-            <button type="submit" className="btn btn-primary">Ekle</button>
-          </form>
+        <div className="page-header">
+          <h1>Mevcut İzin Türleri</h1>
+          <p>Aktif izin türlerini görüntüleyin ve yönetin.</p>
         </div>
 
         <div className="card">
-          <h2>Mevcut İzin Türleri</h2>
+          {error && <div className="error-message">{error}</div>}
           {loading && <p>Yükleniyor...</p>}
+
           {!loading && (
             <table>
               <thead>
@@ -107,4 +81,4 @@ function ManageLeaveTypesPage() {
   );
 }
 
-export default ManageLeaveTypesPage;
+export default LeaveTypeListPage;

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import Navbar from "../../components/layout/Navbar";
+import { adminLinks } from "../../components/layout/navLinks";
 import {
   getPendingRequests,
   approveLeaveRequest,
   rejectLeaveRequest,
+  getAllRequests,
 } from "../../api/leaveRequestApi";
-import { adminLinks } from "../../components/layout/navLinks";
+import { getAllUsers } from "../../api/userApi";
 
 function AdminDashboard() {
   const [requests, setRequests] = useState([]);
@@ -14,23 +16,61 @@ function AdminDashboard() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [error, setError] = useState("");
 
+  const [stats, setStats] = useState({ pending: 0, totalEmployees: 0, approvedThisMonth: 0 });
+
   const loadRequests = () => {
     setLoading(true);
     getPendingRequests()
-      .then((data) => setRequests(data))
+      .then((data) => {
+        setRequests(data);
+        setStats((prev) => ({ ...prev, pending: data.length }));
+      })
       .catch((err) => console.log("Hata:", err))
       .finally(() => setLoading(false));
   };
 
+  const loadStats = () => {
+    getAllUsers()
+      .then((users) => {
+        const employeeCount = users.filter((u) => u.role === "EMPLOYEE").length;
+        setStats((prev) => ({ ...prev, totalEmployees: employeeCount }));
+      })
+      .catch((err) => console.log("Hata:", err));
+
+    getAllRequests()
+      .then((allRequests) => {
+        const now = new Date();
+        const approvedThisMonth = allRequests.filter((r) => {
+          if (r.status !== "APPROVED" || !r.reviewedAt) return false;
+          const reviewedDate = new Date(r.reviewedAt);
+          return (
+            reviewedDate.getMonth() === now.getMonth() &&
+            reviewedDate.getFullYear() === now.getFullYear()
+          );
+        }).length;
+        setStats((prev) => ({ ...prev, approvedThisMonth }));
+      })
+      .catch((err) => console.log("Hata:", err));
+  };
+
   useEffect(() => {
+  loadRequests();
+  loadStats();
+
+  const interval = setInterval(() => {
     loadRequests();
-  }, []);
+    loadStats();
+  }, 10000);
+
+  return () => clearInterval(interval);
+}, []);
 
   const handleApprove = async (id) => {
     setError("");
     try {
       await approveLeaveRequest(id);
       loadRequests();
+      loadStats();
     } catch (err) {
       setError(err.response?.data?.message || "Bir hata oluştu.");
     }
@@ -47,6 +87,7 @@ function AdminDashboard() {
       await rejectLeaveRequest(id, rejectionReason);
       setRejectingId(null);
       loadRequests();
+      loadStats();
     } catch (err) {
       setError(err.response?.data?.message || "Bir hata oluştu.");
     }
@@ -57,14 +98,27 @@ function AdminDashboard() {
       <Navbar links={adminLinks} />
       <div className="page-container">
         <div className="page-header">
-         <h1>Bekleyen İzin Talepleri</h1>
-         <p>Onay bekleyen izin taleplerini buradan yönetebilirsiniz.</p>
+          <h1>Bekleyen İzin Talepleri</h1>
+          <p>Onay bekleyen izin taleplerini buradan yönetebilirsiniz.</p>
         </div>
+
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-card-label">Bekleyen Talep</div>
+            <div className="stat-card-value">{stats.pending}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Toplam Personel</div>
+            <div className="stat-card-value">{stats.totalEmployees}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Bu Ay Onaylanan</div>
+            <div className="stat-card-value">{stats.approvedThisMonth}</div>
+          </div>
+        </div>
+
         <div className="card">
-          <h2>Bekleyen İzin Talepleri</h2>
-
           {error && <div className="error-message">{error}</div>}
-
           {loading && <p>Yükleniyor...</p>}
           {!loading && requests.length === 0 && <p>Bekleyen talep yok.</p>}
 
